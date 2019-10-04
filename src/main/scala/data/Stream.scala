@@ -7,7 +7,7 @@ sealed abstract class Stream[A] {
   def take(n: Int): Stream[A] = Stream.take(n, this)
 
   def concat(stream: Stream[A]): Stream[A] = Stream.concat(this, stream)
-  
+  def reverse: Stream[A] = Stream.reverse(this)
 }
 
 object Stream {
@@ -25,8 +25,8 @@ object Stream {
   }
 
   def take[A](n: Int, stream: Stream[A]): Stream[A] = (n, stream) match {
-    case (0, _)          => result
-    case (_, End)        => result
+    case (0, _)          => stream
+    case (_, End)        => stream
     case (_, Cons(h, t)) => Cons(h, () => take(n - 1, t()))
   }
 
@@ -36,4 +36,13 @@ object Stream {
       case Stream.End => stream2
       case Cons(h, t) => Cons(h, () => concat(t(), stream2))
     }
+
+  def reverse[A](stream: Stream[A]): Stream[A] = {
+    @tailrec def go(rest: Stream[A], result: Stream[A]): Stream[A] =
+      rest match {
+        case Stream.End => result
+        case Cons(h, t) => go(t(), Cons(h, () => result))
+      }
+    go(stream, end)
+  }
 }
