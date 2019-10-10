@@ -45,4 +45,12 @@ object Stream {
       }
     go(stream, end)
   }
+
+  /*  Construction */
+  def unfold[A, B](uf: A => Option[A]): A => Stream[A] = a => {
+    uf(a) match {
+      case None => end
+      case Some(x) => Cons(() => x, () => unfold(uf)(x))
+    }
+  }
 }

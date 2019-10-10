@@ -44,19 +44,12 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
   def map[B](f: A => B): ListZipper[B] =
     ListZipper(left.map(f), f(focus), right.map(f))
 
+  //  [1] 2 [3] => [[[] 1 [2, 3]], [1] 2 [3],  [[1, 2] 3 []]]
   def duplicate: ListZipper[ListZipper[A]] = {
-    def until(f: ListZipper[A] => Option[ListZipper[A]],
-              acc: List[ListZipper[A]] = List.empty,
-              za: ListZipper[A] = this): List[ListZipper[A]] = {
-      f(za) match {
-        case None     => acc
-        case Some(lz) => until(f, lz :: acc, lz)
-      }
-    }
-    ListZipper[ListZipper[A]](
-      until(_.moveLeft),
+    ListZipper(
+      LazyList.unfold(this)(_.moveLeft.map(a => (a, a))).toList,
       this,
-      until(_.moveRight) //list of all moverights until the end
+      LazyList.unfold(this)(_.moveLeft.map(a => (a, a))).toList
     )
   }
 
