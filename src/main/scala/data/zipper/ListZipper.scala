@@ -1,5 +1,7 @@
 package data.zipper
 
+import control.Comonad
+
 import scala.annotation.tailrec
 
 case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
@@ -53,11 +55,26 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
     )
   }
 
-  def extract: A = focus
-
   private def unconsList: List[A] => Option[(A, List[A])] = {
     case Nil     => None
     case x :: xs => Option(x -> xs)
+  }
+
+  def any(p: A => Boolean): Boolean =
+    p(focus) || left.exists(p) || right.exists(p)
+
+  def all(p: A => Boolean): Boolean =
+    p(focus) && left.exists(p) && right.exists(p)
+
+  def find(p: A => Boolean): Option[ListZipper[A]] =
+    Some(this).filter(_ => p(focus)) orElse findLeft(p) orElse findRight(p)
+
+  def toList: List[A] = left ++ (focus :: right)
+
+  // Do any adjacent focii of the list zipper satisfy the given predicate
+  private def adjacentFociiSatisfy(p: A => Boolean): Boolean = {
+    def cmp(lz: => Option[ListZipper[A]]): Boolean = lz.exists(l => p(l.focus))
+    cmp(moveLeft) || cmp(moveRight)
   }
 }
 
@@ -65,5 +82,13 @@ object ListZipper {
   def fromList[A]: List[A] => Option[ListZipper[A]] = {
     case x :: xs => Option(ListZipper(List.empty, x, xs))
     case Nil     => Option.empty
+  }
+
+  implicit val Instance: Comonad[ListZipper] = new Comonad[ListZipper] {
+    override def extract[A](fa: ListZipper[A]) = fa.focus
+
+    override def duplicate[A](f: ListZipper[A]) = f.duplicate
+
+    override def map[A, B](fa: ListZipper[A])(f: A => B) = fa.map(f)
   }
 }
