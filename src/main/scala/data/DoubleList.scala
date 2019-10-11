@@ -1,37 +1,52 @@
 package data
 
-/*
-   [1, 2, 3, 4, 5, 6] is stored as [1, 2, 3] [6, 5, 4], making it faster to append and prepend,
-    at the cost of occasional rebalancing.
- */
-case class DoubleList[A](private val back: List[A],
-                         private val forward: List[A]) {
+/**
+  * [1, 2, 3, 4, 5, 6] is stored as [1, 2, 3] [6, 5, 4], making it faster to append and prepend,
+  * at the cost of occasional rebalancing.
+  * could we do better then using 2 lists beneath?
+  */
+case class DoubleList[A](private val front: List[A],
+                         private val back: List[A]) {
+
   import DoubleList._
 
   /**
-    * Todo: uncons the whole list takes `O(n^2)` instead of O(n)
+    * Unconsing through the whole list takes `O(n*log n)`
     */
-  def uncons[A]: Option[(A, DoubleList[A])] = back match {
-    case x :: xs => Some(x -> DoubleList(xs, forward))
-    case Nil     => forward.headOption.map(_ -> fromList(forward.tail))
+  def uncons: Option[(A, DoubleList[A])] = front match {
+    case x :: xs => Some(x -> DoubleList(xs, back))
+    case Nil     => fromList(back).uncons
   }
 
   /**
     * appends element at the beginning of the list O(1)
     */
-  def +>(a: A): DoubleList[A] = DoubleList(a :: back, forward)
+  def +>(a: A): DoubleList[A] = DoubleList(a :: front, back)
 
   /**
     * prepends element to the end of the list O(1)
     */
-  def <+(a: A): DoubleList[A] = DoubleList(back, a :: forward)
+  def <+(a: A): DoubleList[A] = DoubleList(front, a :: back)
 
-  def map[B](f: A => B): DoubleList[B] = DoubleList(back.map(f), forward.map(f))
+  // todo O(n + m)
+  def ++(that: DoubleList[A]): DoubleList[A] = {
+    fromList(toList ++ that.toList)
+  }
 
-//  def flatMap[B](f: A => DoubleList[B]): DoubleList[B] = {
-//    val fst = back.map(f)
-//    val fwd = forward.map(f)
-//  }
+  def map[B](f: A => B): DoubleList[B] = DoubleList(front.map(f), back.map(f))
+
+  def join[B](implicit ev: A <:< DoubleList[B]): DoubleList[B] = {
+    flatMap(implicitly[A <:< DoubleList[B]].apply)
+  }
+
+  def flatMap[B](f: A => DoubleList[B]): DoubleList[B] = {
+    fromList(map(f).toList.flatMap(_.toList))
+  }
+
+  def toList: List[A] = front ++ back.reverse
+
+  private def rebalance: DoubleList[A] = fromList(this.toList)
+
 }
 
 object DoubleList {
@@ -44,5 +59,6 @@ object DoubleList {
     DoubleList(l, r.reverse)
   }
 
-  def toList[A]: DoubleList[A] => List[A] = dl => dl.back ++ dl.forward.reverse
+  def toList[A]: DoubleList[A] => List[A] = dl => dl.front ++ dl.back.reverse
+
 }
