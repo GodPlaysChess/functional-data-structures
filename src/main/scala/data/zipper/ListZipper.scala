@@ -71,6 +71,10 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
 
   def toList: List[A] = left ++ (focus :: right)
 
+  def allWithAdjacent(a: A): List[ListZipper[A]] = {
+    duplicate.toList.filter(_.adjacentFociiSatisfy(_ == a))
+  }
+
   // Do any adjacent focii of the list zipper satisfy the given predicate
   private def adjacentFociiSatisfy(p: A => Boolean): Boolean = {
     val cmp: Option[ListZipper[A]] => Boolean = _.exists(l => p(l.focus))
