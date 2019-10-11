@@ -73,7 +73,7 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
 
   // Do any adjacent focii of the list zipper satisfy the given predicate
   private def adjacentFociiSatisfy(p: A => Boolean): Boolean = {
-    def cmp(lz: => Option[ListZipper[A]]): Boolean = lz.exists(l => p(l.focus))
+    val cmp: Option[ListZipper[A]] => Boolean = _.exists(l => p(l.focus))
     cmp(moveLeft) || cmp(moveRight)
   }
 }
