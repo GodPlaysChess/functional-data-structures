@@ -34,7 +34,7 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
       case Some(z) if p(z.focus) => oz
       case Some(z)               => stepRight(z.moveRight)
     }
-    stepRight(moveLeft)
+    stepRight(moveRight)
   }
 
   def modify(f: A => A): ListZipper[A] = ListZipper(left, f(focus), right)
@@ -68,7 +68,7 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
 
   def find(p: A => Boolean): Option[ListZipper[A]] =
     Some(this).filter(_ => p(focus)) orElse findLeft(p) orElse findRight(p)
-
+  
   def toList: List[A] = left ++ (focus :: right)
 
   def allWithAdjacent(a: A): List[ListZipper[A]] = {
