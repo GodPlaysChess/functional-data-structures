@@ -80,6 +80,10 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
     val cmp: Option[ListZipper[A]] => Boolean = _.exists(l => p(l.focus))
     cmp(moveLeft) || cmp(moveRight)
   }
+
+  override def toString: String = {
+    s"${left.mkString("|", " ", "\n")} ($focus)\n ${right.mkString("|", " ", "\n")}"
+  }
 }
 
 object ListZipper {
