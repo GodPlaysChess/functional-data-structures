@@ -19,7 +19,7 @@ sealed abstract class List[A] {
 case class Cons[A](head: A, tail: List[A]) extends List[A]
 case object X                              extends List[A forSome { type A }]
 
-object List {
+object List extends ListInstances {
 
   def fromScala[A](l: scala.collection.immutable.List[A]): List[A] =
     l.foldLeft(nil[A])((a, b) => b :: a).reverse
@@ -39,5 +39,19 @@ object List {
         case X        => result
       }
     go(list, nil)
+  }
+}
+
+trait ListInstances {
+  import control.Fold
+
+  implicit val listFold: Fold[List] = new Fold[List] {
+    override def fold[A, B](fa: List[A])(f: (A, B) => B, z: B): B = {
+      def go(li: List[A], res: B): B = li match {
+        case h Cons t => go(t, f(h, res))
+        case X => res
+      }
+      go(fa, z)
+    }
   }
 }
