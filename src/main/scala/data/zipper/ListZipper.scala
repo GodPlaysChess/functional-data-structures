@@ -1,6 +1,8 @@
 package data.zipper
 
 import control.Comonad
+import data.Stream
+import Stream.unfold
 
 import scala.annotation.tailrec
 
@@ -49,9 +51,9 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
   //  [1] 2 [3] => [[[] 1 [2, 3]], [1] 2 [3],  [[1, 2] 3 []]]
   def duplicate: ListZipper[ListZipper[A]] = {
     ListZipper(
-      LazyList.unfold(this)(_.moveLeft.map(a => (a, a))).toList,
+      Stream.unfold(this)(_.moveLeft.map(a => (a, a))).toList,
       this,
-      LazyList.unfold(this)(_.moveLeft.map(a => (a, a))).toList
+      Stream.unfold(this)(_.moveLeft.map(a => (a, a))).toList
     )
   }
 

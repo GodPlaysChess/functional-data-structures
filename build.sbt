@@ -2,7 +2,7 @@ name := "functional-data-structures"
 
 version := "0.1"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.12.8"
 
 resolvers += Resolver.sonatypeRepo("releases")
 

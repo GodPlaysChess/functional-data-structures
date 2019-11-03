@@ -1,6 +1,7 @@
 package data
 
 import scala.annotation.tailrec
+import data.basic.List
 
 sealed abstract class Stream[A] {
   def drop(n: Int): Stream[A] = Stream.drop(n, this)
@@ -8,6 +9,8 @@ sealed abstract class Stream[A] {
 
   def concat(stream: Stream[A]): Stream[A] = Stream.concat(this, stream)
   def reverse: Stream[A] = Stream.reverse(this)
+
+  def toList: List[A] = Stream.toList(this)
 }
 
 object Stream {
@@ -46,11 +49,23 @@ object Stream {
     go(stream, end)
   }
 
+  def toList[A](stream: Stream[A]): List[A] = {
+    @tailrec def go(rest: Stream[A], result: List[A]): List[A] =
+      rest match {
+        case Stream.End => result
+        case Cons(h, t) => go(t(), h() :: result)
+      }
+    go(stream, List.nil[A]).reverse
+  }
+
   /*  Construction */
-  def unfold[A, B](uf: A => Option[A]): A => Stream[A] = a => {
-    uf(a) match {
+  def unfold[A, B](seed: A)(uf: A => Option[A]): Stream[A] = {
+    uf(seed) match {
       case None => end
-      case Some(x) => Cons(() => x, () => unfold(uf)(x))
+      case Some(x) => Cons(() => x, () => unfold(x)(uf))
     }
   }
+
 }
+
+

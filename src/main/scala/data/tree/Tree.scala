@@ -10,8 +10,8 @@ sealed abstract class Tree[A: Ordering] {
   def member(a: A): Boolean =
     cata(false, {
       case Node(left, el, right) =>
-        if (a lt el) left.member(a)
-        else if (a gt el) right.member(a)
+        if (a < el) left.member(a)
+        else if (a > el) right.member(a)
         else true
     })
 
