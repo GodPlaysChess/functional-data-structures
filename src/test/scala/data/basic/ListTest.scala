@@ -5,7 +5,6 @@ import List._
 import ListFixture._
 
 class ListTest extends FlatSpec with Matchers {
-
   behavior of "List"
 
   it should "reverse" in {

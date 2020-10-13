@@ -2,7 +2,6 @@ package data.zipper
 
 import control.Comonad
 import data.Stream
-import Stream.unfold
 
 import scala.annotation.tailrec
 
@@ -49,13 +48,12 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
     ListZipper(left.map(f), f(focus), right.map(f))
 
   //  [1] 2 [3] => [[[] 1 [2, 3]], [1] 2 [3],  [[1, 2] 3 []]]
-  def duplicate: ListZipper[ListZipper[A]] = {
+  def duplicate: ListZipper[ListZipper[A]] =
     ListZipper(
-      Stream.unfold(this)(_.moveLeft.map(a => (a, a))).toList,
+      data.basic.List.asScala(Stream.unfold(this)(_.moveLeft).toList),
       this,
-      Stream.unfold(this)(_.moveLeft.map(a => (a, a))).toList
+      data.basic.List.asScala(Stream.unfold(this)(_.moveLeft).toList)
     )
-  }
 
   private def unconsList: List[A] => Option[(A, List[A])] = {
     case Nil     => None
@@ -70,12 +68,11 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
 
   def find(p: A => Boolean): Option[ListZipper[A]] =
     Some(this).filter(_ => p(focus)) orElse findLeft(p) orElse findRight(p)
-  
+
   def toList: List[A] = left ++ (focus :: right)
 
-  def allWithAdjacent(a: A): List[ListZipper[A]] = {
+  def allWithAdjacent(a: A): List[ListZipper[A]] =
     duplicate.toList.filter(_.adjacentFociiSatisfy(_ == a))
-  }
 
   // Do any adjacent focii of the list zipper satisfy the given predicate
   private def adjacentFociiSatisfy(p: A => Boolean): Boolean = {
@@ -83,9 +80,8 @@ case class ListZipper[A](left: List[A], focus: A, right: List[A]) {
     cmp(moveLeft) || cmp(moveRight)
   }
 
-  override def toString: String = {
+  override def toString: String =
     s"${left.mkString("|", " ", "\n")} ($focus)\n ${right.mkString("|", " ", "\n")}"
-  }
 }
 
 object ListZipper {
